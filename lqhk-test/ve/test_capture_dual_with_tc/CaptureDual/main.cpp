@@ -150,14 +150,14 @@ std::string printModeID()
 int main(int argc, char * argv[])
 {
     /*!
-     * \brief deckLinkIterator
+     * \brief m_DeckLinkIterator
      *Object for enumerate every DeckLink port. This object
      *is used for checking DeckLink drivers later.
      */
-    IDeckLinkIterator			*deckLinkIterator;
-    deckLinkIterator = CreateDeckLinkIteratorInstance();
+    IDeckLinkIterator			*g_DeckLinkIterator;
+    g_DeckLinkIterator = CreateDeckLinkIteratorInstance();
     IDeckLink *m_DeckLink = NULL;
-    if (!deckLinkIterator)
+    if (!g_DeckLinkIterator)
     {
         fprintf(stderr, "This application requires the DeckLink drivers installed.\n");
     }
@@ -168,16 +168,9 @@ int main(int argc, char * argv[])
      *is able to display.
      */
     int totalDeckLink = 0;
-    while (deckLinkIterator->Next(&m_DeckLink) == S_OK)
+    while (g_DeckLinkIterator->Next(&m_DeckLink) == S_OK)
     {
         ++totalDeckLink;
-        if(totalDeckLink==0)
-        {
-            IDeckLinkInput *m_DeckLinkInput = NULL;
-            if (m_DeckLink->QueryInterface(IID_IDeckLinkInput, (void**)&m_DeckLinkInput) != S_OK)
-                return 0;
-
-        }
         //  Release before enumerate next port.
         m_DeckLink->Release();
         m_DeckLink = NULL;
@@ -186,8 +179,8 @@ int main(int argc, char * argv[])
      *Release IDeckLinkIterator for the function printModeID
      *That function will enumerate all supported display modes.
      */
-    deckLinkIterator->Release();
-    deckLinkIterator = NULL;
+    g_DeckLinkIterator->Release();
+    g_DeckLinkIterator = NULL;
 
     /*!
      *Variables below are changed to vector to support dual video inputs.
@@ -315,8 +308,7 @@ int main(int argc, char * argv[])
         snprintf(m_istr,sizeof(m_istr),"%d",i_DeckLink);
         m_VideoOutputFile.append(m_istr);
         m_VideoOutputFile.append(".hdraw");
-        m_Delegate = new DeckLinkCaptureDelegate(i_DeckLink, m_VideoOutputFile.c_str());
-        delegate.push_back(m_Delegate);
+
 
         //  Variables for confirming display mode.
         BMDVideoInputFlags m_InputFlags = 0; //Ignore. BMDVideoInputFlags are mainly for 3D supports.
@@ -379,7 +371,10 @@ int main(int argc, char * argv[])
         {
             fprintf(stderr, "Invalid mode %d specified on input %d.\n", g_videoModeIndex, i_DeckLink);
             //exit
-        }
+        }     
+        m_Delegate = new DeckLinkCaptureDelegate(i_DeckLink, m_VideoOutputFile.c_str());
+        delegate.push_back(m_Delegate);
+        m_DeckLinkInput->SetCallback(m_Delegate);
         m_DeckLink = NULL;
     }
     //  Check amount of variables.
