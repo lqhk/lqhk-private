@@ -114,31 +114,35 @@ std::string printModeID()
     catch(HRESULT)
     {
         //exception
-        if(m_DisplayMode!=NULL)
-        {
-            m_DisplayMode->Release();
-            m_DisplayMode = NULL;
-        }
-        if(m_DisplayModeIterator!=NULL)
-        {
-            m_DisplayModeIterator->Release();
-            m_DisplayModeIterator = NULL;
-        }
-        if(m_DeckLinkInput!=NULL)
-        {
-            m_DeckLinkInput->Release();
-            m_DeckLinkInput = NULL;
-        }
-        if(m_DeckLink!=NULL)
-        {
-            m_DeckLink->Release();
-            m_DeckLink = NULL;
-        }
-        if(m_DeckLinkIterator!=NULL)
-        {
-            m_DeckLinkIterator->Release();
-            m_DeckLinkIterator = NULL;
-        }
+    }
+    /*!
+     * After catch the exceptions, the application will execute the
+     * rest of codes. It looks like a "finally{}" in c# or java.
+     */
+    if(m_DisplayMode!=NULL)
+    {
+        m_DisplayMode->Release();
+        m_DisplayMode = NULL;
+    }
+    if(m_DisplayModeIterator!=NULL)
+    {
+        m_DisplayModeIterator->Release();
+        m_DisplayModeIterator = NULL;
+    }
+    if(m_DeckLinkInput!=NULL)
+    {
+        m_DeckLinkInput->Release();
+        m_DeckLinkInput = NULL;
+    }
+    if(m_DeckLink!=NULL)
+    {
+        m_DeckLink->Release();
+        m_DeckLink = NULL;
+    }
+    if(m_DeckLinkIterator!=NULL)
+    {
+        m_DeckLinkIterator->Release();
+        m_DeckLinkIterator = NULL;
     }
     return strModeHelp;
 }
