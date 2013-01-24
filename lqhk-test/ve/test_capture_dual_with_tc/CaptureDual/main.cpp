@@ -66,7 +66,7 @@ std::string printModeID()
         result = m_DeckLink->QueryInterface(IID_IDeckLinkInput, (void**)&m_DeckLinkInput);
         if(result != S_OK)
         {
-            fprinrf(stderr, "Cannot create DeckLinkInput.\n");
+            fprintf(stderr, "Cannot create DeckLinkInput.\n");
             throw result;
             //return strModeHelp;
         }
@@ -104,8 +104,8 @@ std::string printModeID()
                 char strModeLine[512];
                 snprintf(strModeLine, sizeof(strModeLine),
                          "        %2d:  %-20s \t %li x %li \t %g FPS\n",
-                         m_DisplayModeCount, displayModeString, displayMode->GetWidth(),
-                         displayMode->GetHeight(), (double)frameRateScale / (double)frameRateDuration);
+                         m_DisplayModeCount, displayModeString, m_DisplayMode->GetWidth(),
+                         m_DisplayMode->GetHeight(), (double)frameRateScale / (double)frameRateDuration);
                 free(displayModeString);
                 +m_DisplayModeCount;
                 strModeHelp.append(strModeLine);
@@ -301,7 +301,7 @@ int main(int argc, char * argv[])
 
     //  Release port iterator first and then enumerate all ports again for
     //   real capture.
-    deckLinkIterator = CreateDeckLinkIteratorInstance();
+    g_DeckLinkIterator = CreateDeckLinkIteratorInstance();
     if(m_DeckLink!=NULL)
     {
         m_DeckLink->Release();
@@ -337,7 +337,7 @@ int main(int argc, char * argv[])
     std::vector<IDeckLinkDisplayMode *> displayMode;
 
     int i_DeckLink = 0;
-    while(deckLinkIterator->Next(&m_DeckLink)==S_OK)
+    while(g_DeckLinkIterator->Next(&m_DeckLink)==S_OK)
     {
         deckLink.push_back(m_DeckLink);
         //Initialize DeckLink ports.
@@ -467,7 +467,7 @@ int main(int argc, char * argv[])
             fprintf(stderr, "Failed to enable video input on input %d\n", i_EnableInput);
             //exit
         }
-        resutl = m_DeckLinkInput->EnableAudioInput(bmdAudioSampleRate48kHz, g_audioSampleDepth, g_audioChannels);
+        result = m_DeckLinkInput->EnableAudioInput(bmdAudioSampleRate48kHz, g_audioSampleDepth, g_audioChannels);
         if(result!=S_OK)
         {
             fprintf(stderr, "Failed to enable audio input on input %d\n", i_EnableInput);
@@ -512,7 +512,7 @@ int main(int argc, char * argv[])
     for(int i_Release=0;i_Release<deckLink.size();++i_Release)
     {
         //Release
-        IDeckLinkInput *m_DeckLink = deckLink.at(i_Release);
+        IDeckLink *m_DeckLink = deckLink.at(i_Release);
         if(m_DeckLink!=NULL)
         {
             m_DeckLink->Release();
