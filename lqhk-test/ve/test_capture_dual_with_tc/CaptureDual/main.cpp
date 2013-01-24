@@ -486,6 +486,41 @@ int main(int argc, char * argv[])
         }
     }
     watcher.startAllCapture();
+
+    for(int i_Release=0;i_Release<displayMode.size();++i_Release)
+    {
+        //Release
+        IDeckLinkDisplayMode *m_DisplayMode = displayMode.at(i_Release);
+        if(m_DisplayMode!=NULL)
+        {
+            m_DisplayMode->Release();
+            m_DisplayMode = NULL;
+        }
+    }
+    displayMode.clear();
+    for(int i_Release=0;i_Release<deckLinkInput.size();++i_Release)
+    {
+        //Release
+        IDeckLinkInput *m_DeckLinkInput = deckLinkInput.at(i_Release);
+        if(m_DeckLinkInput!=NULL)
+        {
+            m_DeckLinkInput->Release();
+            m_DeckLinkInput = NULL;
+        }
+    }
+    deckLinkInput.clear();
+    for(int i_Release=0;i_Release<deckLink.size();++i_Release)
+    {
+        //Release
+        IDeckLinkInput *m_DeckLink = deckLink.at(i_Release);
+        if(m_DeckLink!=NULL)
+        {
+            m_DeckLink->Release();
+            m_DeckLink = NULL;
+        }
+    }
+    deckLink.clear();
+
     return 0;
 }
 
