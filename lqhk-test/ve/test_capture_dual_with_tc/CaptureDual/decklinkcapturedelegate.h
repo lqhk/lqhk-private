@@ -15,6 +15,7 @@ public:
     ~DeckLinkCaptureDelegate(); 
 
     void SetTimeCodeFormat(const char *timecodeformat);
+    void SetMaxFrames(int frames);
 
     virtual HRESULT STDMETHODCALLTYPE QueryInterface(REFIID iid, LPVOID *ppv) { return E_NOINTERFACE; }
     virtual ULONG STDMETHODCALLTYPE AddRef(void);

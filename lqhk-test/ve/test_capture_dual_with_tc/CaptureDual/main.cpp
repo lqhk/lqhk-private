@@ -14,6 +14,12 @@ int								audioOutputFile = -1;
 //IDeckLinkDisplayModeIterator	*displayModeIterator = NULL;
 
 static BMDTimecodeFormat		g_timecodeFormat = 0;
+
+/*!
+ * \brief g_videoModeIndex
+ * An int to specify the video mode.
+ * Value following mode,m parameter.
+ */
 static int						g_videoModeIndex = -1;
 static int						g_audioChannels = 2;
 static int						g_audioSampleDepth = 16;
@@ -114,6 +120,7 @@ std::string printModeID()
     catch(HRESULT)
     {
         //exception
+        fprintf(stderr, "An exception happened while enumerating display modes.\n");
     }
     /*!
      * After catch the exceptions, the application will execute the
@@ -155,6 +162,11 @@ int main(int argc, char * argv[])
      *is used for checking DeckLink drivers later.
      */
     IDeckLinkIterator			*g_DeckLinkIterator;
+
+    /*!
+     * Initialization checking steps.
+     */
+
     g_DeckLinkIterator = CreateDeckLinkIteratorInstance();
     IDeckLink *m_DeckLink = NULL;
     if (!g_DeckLinkIterator)
@@ -176,7 +188,7 @@ int main(int argc, char * argv[])
         m_DeckLink = NULL;
     }
     /*!
-     *Release IDeckLinkIterator for the function printModeID
+     *Release IDeckLinkIterator for the function printModeID.
      *That function will enumerate all supported display modes.
      */
     g_DeckLinkIterator->Release();
@@ -193,6 +205,13 @@ int main(int argc, char * argv[])
      */
 
 
+    /*!
+     * \brief g_PixelFormat
+     * Pixel format.
+     * 0=bmdFormat8BitYUV
+     * 1=bmdFormat10BitYUV
+     * 2=bmdFormat10BitRGB
+     */
     BMDPixelFormat g_PixelFormat = bmdFormat8BitYUV;
     HRESULT						result;
 
@@ -241,6 +260,8 @@ int main(int argc, char * argv[])
     }
 
     std::string strTimeCode = boost_opt_string(parameter_map, "timecode");
+    char strConstTimeCode[128];
+    snprintf(strConstTimeCode,sizeof(strConstTimeCode),strTimeCode.c_str());
     // Comment lines below are previously for time code.
     // Now the time code is a const char* parameter of DeckLinkCaptureDelegate().
 //    if (strTimeCode.compare("rp188"))
@@ -286,15 +307,39 @@ int main(int argc, char * argv[])
         m_DeckLink->Release();
         m_DeckLink = NULL;
     }
+    /*!
+     * \brief deckLink
+     * Interface for a physical DeckLink device.
+     */
     std::vector<IDeckLink *> deckLink;
+
+    /*!
+     * \brief deckLinkInput
+     * Interface for an application to capture a video and audio stream.
+     */
     std::vector<IDeckLinkInput *> deckLinkInput;
+
+    /*!
+     * \brief delegate
+     * DeckLinkCaptureDelegate. A callback class which is called for
+     * each captured frame.
+     */
     std::vector<DeckLinkCaptureDelegate *> delegate;
+
+    IDeckLinkDisplayModeIterator *m_DisplayModeIterator = NULL;
+
+    /*!
+     * \brief displayMode
+     * Interface represented a supported display mode.
+     * Requires a IDeckLinkDisplayModeIterator to enumerate
+     * all supported display modes.
+     */
     std::vector<IDeckLinkDisplayMode *> displayMode;
+
     int i_DeckLink = 0;
     while(deckLinkIterator->Next(&m_DeckLink)==S_OK)
     {
         deckLink.push_back(m_DeckLink);
-        int displayModeCount = 0;
         //Initialize DeckLink ports.
         IDeckLinkInput *m_DeckLinkInput;
         m_DeckLink->QueryInterface(IID_IDeckLinkInput, (void**)&m_DeckLinkInput);//Requires release if failed.
@@ -316,15 +361,15 @@ int main(int argc, char * argv[])
         BMDPixelFormat m_PixelFormat = bmdFormat8BitYUV;
         bool m_FoundDisplayMode = false;
         //  Enumerate all display modes supported by this DeckLinkInput
-        result = m_DeckLinkInput->GetDisplayModeIterator(&displayModeIterator);
+        result = m_DeckLinkInput->GetDisplayModeIterator(&m_DisplayModeIterator);
         if(result != S_OK)
         {
             fprintf(stderr, "Could not obtain the video output display mode iterator - result = %08x\n", result);
             //exit
         }
-        IDeckLinkDisplayMode *m_DisplayMode;
-        displayModeCount = 0;
-        while(displayModeIterator->Next(&m_DisplayMode)==S_OK)
+        IDeckLinkDisplayMode *m_DisplayMode = NULL;
+        int displayModeCount = 0;
+        while(m_DisplayModeIterator->Next(&m_DisplayMode)==S_OK)
         {
             if(g_videoModeIndex==displayModeCount)
             {
@@ -373,6 +418,11 @@ int main(int argc, char * argv[])
             //exit
         }     
         m_Delegate = new DeckLinkCaptureDelegate(i_DeckLink, m_VideoOutputFile.c_str());
+        m_Delegate->SetTimeCodeFormat(strConstTimeCode);
+        if(g_maxFrames>0)
+        {
+            m_Delegate->SetMaxFrames(g_maxFrames);
+        }
         delegate.push_back(m_Delegate);
         m_DeckLinkInput->SetCallback(m_Delegate);
         m_DeckLink = NULL;

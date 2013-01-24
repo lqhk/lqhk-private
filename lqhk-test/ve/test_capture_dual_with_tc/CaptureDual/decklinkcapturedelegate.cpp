@@ -52,6 +52,11 @@ void DeckLinkCaptureDelegate::SetTimeCodeFormat(const char *timecodeformat)
     }
 }
 
+void DeckLinkCaptureDelegate::SetMaxFrames(int frames)
+{
+    maxFrames = frames;
+}
+
 ULONG DeckLinkCaptureDelegate::AddRef(void)
 {
     pthread_mutex_lock(&m_mutex);
